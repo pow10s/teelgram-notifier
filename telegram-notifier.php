@@ -21,8 +21,8 @@ if (!function_exists('add_action')) {
     exit;
 }
 require_once($_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php');
-require_once(TELEGRAM_NOTIFIER_PLUGIN_DIR . 'class.telegram-menu.php');
 require_once(TELEGRAM_NOTIFIER_PLUGIN_DIR . 'class.helper.php');
+require_once(TELEGRAM_NOTIFIER_PLUGIN_DIR . 'class.telegram-menu.php');
 require_once(TELEGRAM_NOTIFIER_PLUGIN_DIR . 'class.telegram-db.php');
 require_once(TELEGRAM_NOTIFIER_PLUGIN_DIR . 'class.telegram-bot.php');
 
