@@ -1,9 +1,9 @@
 {
-    "name": "stosdima/telegram-notifier",
+    "name": "stosdima/teelgram-notifier",
     "version": "master",
     "type": "wordpress-plugin",
     "dist": {
-        "url": "git@bitbucket.org:stosdima/telegram-notifier.git",
+        "url": "git@github.com:stosdima/teelgram-notifier.git",
         "type": "git"
     }
 }
