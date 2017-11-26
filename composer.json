@@ -2,7 +2,7 @@
     "name": "stosdima/teelgram-notifier",
     "version": "master",
     "type": "wordpress-plugin",
-    "dist": {
+    "source": {
         "url": "git@github.com:stosdima/teelgram-notifier.git",
         "type": "git"
     },
