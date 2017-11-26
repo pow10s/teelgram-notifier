@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * Telegram_Menu Class
+ * @version 0.1.0
+ */
 class Telegram_Menu
 {
     private $options;
@@ -106,21 +109,11 @@ class Telegram_Menu
 
     public function verif_code_callback()
     {
+        $helper = new Helper();
         printf(
             '<input readonly="readonly" type="text" id="verif_code" name="telegram_bot_options[verif_code]" value="%s" />',
-            isset($this->options['verif_code']) ? esc_attr($this->options['verif_code']) : $this->randomString()
+            isset($this->options['verif_code']) ? esc_attr($this->options['verif_code']) : $helper->randomString()
         );
     }
 
-    public function randomString($length = 8)
-    {
-        $str = "";
-        $characters = array_merge(range('A', 'Z'), range('a', 'z'), range('0', '9'));
-        $max = count($characters) - 1;
-        for ($i = 0; $i < $length; $i++) {
-            $rand = mt_rand(0, $max);
-            $str .= $characters[$rand];
-        }
-        return $str;
-    }
 }

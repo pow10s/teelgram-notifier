@@ -1,7 +1,13 @@
 <?php
-
+/**
+ * Telegram_Db Class
+ * @version 0.1.0
+ */
 class Telegram_Db
 {
+    /**
+     * Creating table in database
+     */
     public function create_table()
     {
         global $wpdb;
@@ -21,12 +27,20 @@ class Telegram_Db
         }
     }
 
+    /**
+     * Deleting table in database
+     * @return  false|int
+     */
     public function delete_table()
     {
         global $wpdb;
         return $wpdb->query("DROP TABLE IF EXISTS wp_telegram_users");
     }
 
+    /**
+     * Adding user in database
+     * @param int $chatId
+     */
     public function addContact($chatId)
     {
         global $wpdb;
@@ -40,6 +54,11 @@ class Telegram_Db
         }
     }
 
+    /**
+     * Deleting user form database
+     * @param $chatId
+     * @return array|null|object
+     */
     public function deleteContact($chatId)
     {
         global $wpdb;
@@ -50,6 +69,12 @@ class Telegram_Db
         return $chat;
     }
 
+    /**
+     * Update user current status
+     * @param $chatId
+     * @param $status
+     * @return false|int
+     */
     public function updateStatus($chatId, $status)
     {
         global $wpdb;
@@ -58,6 +83,11 @@ class Telegram_Db
         return $chat;
     }
 
+    /**
+     * Reset user current status
+     * @param $chatId
+     * @return false|int
+     */
     public function resetStatus($chatId)
     {
         global $wpdb;
@@ -67,6 +97,10 @@ class Telegram_Db
         return $chat;
     }
 
+    /**
+     * Get all users in database
+     * @return array|null|object
+     */
     public function chatAll()
     {
         global $wpdb;
@@ -74,6 +108,11 @@ class Telegram_Db
         return $chats;
     }
 
+    /**
+     * Get current user status
+     * @param $chatId
+     * @return array|null|object
+     */
     public function getStatus($chatId)
     {
         global $wpdb;
@@ -81,6 +120,11 @@ class Telegram_Db
         return $chats;
     }
 
+    /**
+     * Updating admin status for user
+     * @param $chatId
+     * @return false|int
+     */
     public function updateAdmin($chatId)
     {
         global $wpdb;
@@ -89,6 +133,11 @@ class Telegram_Db
         return $chat;
     }
 
+    /**
+     * Checing if user is admin
+     * @param $chatId
+     * @return bool
+     */
     public function isAdmin($chatId)
     {
         global $wpdb;
@@ -100,6 +149,11 @@ class Telegram_Db
         return ($chat[0]->is_admin == 1) ? true : false;
     }
 
+    /**
+     * Get posts by keyword
+     * @param $keyword
+     * @return array
+     */
     public function searchByKeyword($keyword)
     {
         $query = new WP_Query(['s' => $keyword]);

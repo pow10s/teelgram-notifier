@@ -1,12 +1,41 @@
 <?php
-
+/**
+ * Telegram_Bot Class
+ *
+ * @version 0.2
+ */
 class Telegram_Bot
 {
-    private $offset;
+    /**
+     * Init options from wordpress database
+     * @var $options
+     */
     private $options;
+
+    /**
+     * Init offset for long polling method
+     * @var $offset
+     */
+    private $offset;
+
+    /**
+     * Init TelegamBot API SDK
+     * @var $api
+     */
     private $api;
+
+    /**
+     * Init Database connection
+     * @var $db
+     */
     private $db;
 
+    /**
+     * Telegram_Bot constructor.*
+     * <code>$this->options</code> getting options from wordpress
+     * <code>$this->api</code> adding TelegramBot object
+     * <code>$this->db </code> adding Database object
+     */
     public function __construct()
     {
         $this->options = get_option('telegram_bot_options');
@@ -20,8 +49,12 @@ class Telegram_Bot
         }
     }
 
+    /**
+     * Send new post to telegram users
+     */
     public function send_post_to_telegram_users()
     {
+        $helper = new Helper();
         $recent_post = wp_get_recent_posts(['numberposts' => 1]);
         foreach ($this->db->chatAll() as $id) {
             foreach ($recent_post as $post) {
@@ -32,19 +65,19 @@ class Telegram_Bot
                         ]
                     ]
                 );
-                $text = $this->generate_telegram_post(get_permalink($post['ID']), $post['post_title'],
+                $text = $helper->generate_telegram_post(get_permalink($post['ID']), $post['post_title'],
                     $post['post_content']);
                 $this->api->sendMessage($id->chat_id, $text, 'html', false, null, $keyboard);
             }
         }
     }
 
-    private function generate_telegram_post($postUrl, $postTitle, $postBody)
-    {
-        return '<a href=' . '"' . $postUrl . '"' . '>' . $postTitle . '</a>' . strip_tags("\n" . substr("$postBody", 0,
-                    400));
-    }
-
+    /**
+     * Long polling techology for sites with disabled SSL(may used on localhost environment) @link https://core.telegram.org/bots/api#getupdates
+     * Processing users messages coming from Telegram application
+     * Getting updates from Telegram Bot API <code>$this->api->getUpdates() </code>
+     * @see BotApi
+     */
     public function long_poll_chat_commands_responce()
     {
         try {
@@ -53,10 +86,12 @@ class Telegram_Bot
             $response = $this->api->getUpdates($this->offset, 60);
             foreach ($response as $data) {
                 if ($data->getMessage()) {
+                    //get params from telegram responce
                     $chatId = $data->getMessage()->getChat()->getId();
                     $firstName = $data->getMessage()->getChat()->getFirstName();
                     $lastName = $data->getMessage()->getChat()->getLastName();
                     $status = $this->db->getStatus($chatId);
+                    //Handling commands from the user
                     switch ($data->getMessage()->getText()) {
                         case '/start':
                             $this->db->addContact($chatId);
@@ -123,6 +158,7 @@ class Telegram_Bot
                             }
                             break;
                     }
+                    //processing response to a message using the current status of the user in the database
                     if ($status) {
                         switch ($status[0]->status) {
                             case 'admin-verif':
@@ -156,7 +192,7 @@ class Telegram_Bot
                                                 ]
                                             ]
                                         );
-                                        $text = $this->generate_telegram_post(get_permalink($postData['ID']),
+                                        $text = $helper->generate_telegram_post(get_permalink($postData['ID']),
                                             $postData['post_title'], $postData['post_content']);
                                         $this->api->sendMessage($id->chat_id, $text, 'html', false, null, $keyboard);
                                     }
@@ -181,7 +217,7 @@ class Telegram_Bot
                                 if ($posts) {
                                     $text = '';
                                     foreach ($posts as $post) {
-                                        $text .= $this->generate_telegram_post(get_permalink($post->ID),
+                                        $text .= $helper->generate_telegram_post(get_permalink($post->ID),
                                                 $post->post_title, $post->post_content) . "\n";
                                     }
                                     $this->api->sendMessage($chatId, $text, 'html', false, null);
@@ -195,6 +231,7 @@ class Telegram_Bot
                         }
                     }
                 }
+                //processing of button presses
                 if ($data->getCallbackQuery()) {
                     $callbackId = $data->getCallbackQuery()->getMessage()->getChat()->getId();
                     switch ($data->getCallbackQuery()->getData()) {
@@ -230,7 +267,7 @@ class Telegram_Bot
                             if ($posts) {
                                 $text = 'Please choose post ID which you want to delete from list below: ' . "\n";
                                 foreach ($posts as $post) {
-                                    $text .= $this->generate_telegram_post(get_permalink($post->ID), $post->post_title,
+                                    $text .= $helper->generate_telegram_post(get_permalink($post->ID), $post->post_title,
                                             'ID -> ' . $post->ID) . "\n";
                                 }
                                 $this->db->updateStatus($callbackId, 'admin-post-delete');
@@ -254,7 +291,7 @@ class Telegram_Bot
                             $text = '';
                             if ($posts) {
                                 foreach ($posts as $post) {
-                                    $text .= $this->generate_telegram_post(get_permalink($post->ID), $post->post_title,
+                                    $text .= $helper->generate_telegram_post(get_permalink($post->ID), $post->post_title,
                                             $post->post_content) . "\n";
                                 }
                                 $this->api->sendMessage($callbackId, $text, 'html');
@@ -274,6 +311,9 @@ class Telegram_Bot
         }
     }
 
+    /**
+     * Setting webhook @link https://core.telegram.org/bots/api#setwebhook
+    */
     public function setWebhook()
     {
         if (isset($_REQUEST['page']) && $_REQUEST['page'] == 'telegram-settings') {
@@ -286,10 +326,17 @@ class Telegram_Bot
         }
     }
 
+    /**
+     * Webhook technology for for sites with enabled SSL. Can`t be used on localhost environment
+     * Processing users messages coming from Telegram application
+     * @see Client
+     */
     public function webhook_chat_command_responce()
     {
         try {
             $bot = new \TelegramBot\Api\Client($this->options['bot_token']);
+            $helper = new Helper();
+            //Handling commands from the user
             $bot->command('start', function ($message) use ($bot) {
                 $this->db->addContact($message->getChat()->getId());
                 $this->db->resetStatus($message->getChat()->getId());
@@ -347,7 +394,8 @@ class Telegram_Bot
                 $text = 'You have been deleted from bot database. If you want start again, please, send me /start';
                 $bot->sendMessage($message->getChat()->getId(), $text);
             });
-            $bot->callbackQuery(function (\TelegramBot\Api\Types\CallbackQuery $callbackQuery) use ($bot) {
+            //processing of button presses
+            $bot->callbackQuery(function (\TelegramBot\Api\Types\CallbackQuery $callbackQuery) use ($bot, $helper) {
                 $callbackId = $callbackQuery->getFrom()->getId();
                 switch ($callbackQuery->getData()) {
                     case 'categories':
@@ -383,7 +431,7 @@ class Telegram_Bot
                         if ($posts) {
                             $text = 'Please choose post ID which you want to delete from list below: ' . "\n";
                             foreach ($posts as $post) {
-                                $text .= $this->generate_telegram_post(get_permalink($post->ID), $post->post_title,
+                                $text .= $helper->generate_telegram_post(get_permalink($post->ID), $post->post_title,
                                         'ID -> ' . $post->ID) . "\n";
                             }
                             $this->db->updateStatus($callbackId, 'admin-post-delete');
@@ -407,7 +455,7 @@ class Telegram_Bot
                         $text = '';
                         if ($posts) {
                             foreach ($posts as $post) {
-                                $text .= $this->generate_telegram_post(get_permalink($post->ID), $post->post_title,
+                                $text .= $helper->generate_telegram_post(get_permalink($post->ID), $post->post_title,
                                         $post->post_content) . "\n";
                             }
                             $bot->sendMessage($callbackId, $text, 'html');
@@ -419,7 +467,8 @@ class Telegram_Bot
                     }
                 }
             });
-            $bot->on(function (\TelegramBot\Api\Types\Message $message) use ($bot) {
+            //processing response to a message using the current status of the user in the database
+            $bot->on(function (\TelegramBot\Api\Types\Message $message) use ($bot, $helper) {
                 $status = $this->db->getStatus($message->getChat()->getId());
                 if ($status) {
                     switch ($status[0]->status) {
@@ -454,7 +503,7 @@ class Telegram_Bot
                                             ]
                                         ]
                                     );
-                                    $text = $this->generate_telegram_post(get_permalink($postData['ID']),
+                                    $text = $helper->generate_telegram_post(get_permalink($postData['ID']),
                                         $postData['post_title'], $postData['post_content']);
                                     $bot->sendMessage($id->chat_id, $text, 'html', false, null, $keyboard);
                                 }
@@ -479,7 +528,7 @@ class Telegram_Bot
                             if ($posts) {
                                 $text = '';
                                 foreach ($posts as $post) {
-                                    $text .= $this->generate_telegram_post(get_permalink($post->ID),
+                                    $text .= $helper->generate_telegram_post(get_permalink($post->ID),
                                             $post->post_title, $post->post_content) . "\n";
                                 }
                                 $bot->sendMessage($message->getChat()->getId(), $text, 'html', false, null);
