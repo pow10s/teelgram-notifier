@@ -5,5 +5,8 @@
     "dist": {
         "url": "git@github.com:stosdima/teelgram-notifier.git",
         "type": "git"
+    },
+    "require": {
+        "telegram-bot/api": "^2.3"
     }
 }
