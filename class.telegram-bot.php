@@ -314,7 +314,7 @@ class Telegram_Bot
             }
             $response = $this->api->getUpdates($this->offset, 60);
         } catch (\TelegramBot\Api\Exception $e) {
-            echo $e->getMessage();
+             $e->getMessage();
         }
     }
 
