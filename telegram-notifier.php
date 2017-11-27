@@ -27,11 +27,12 @@ require_once(TELEGRAM_NOTIFIER_PLUGIN_DIR . 'class.telegram-db.php');
 require_once(TELEGRAM_NOTIFIER_PLUGIN_DIR . 'class.telegram-bot.php');
 
 if (is_admin()) {
+    global $error;
     $db = new Telegram_Db();
     register_activation_hook(__FILE__, [$db, 'create_table']);
     register_deactivation_hook(__FILE__, [$db, 'delete_table']);
     $my_settings_page = new Telegram_Menu();
-    $bot_send_msg = new Telegram_Bot();
-    $bot_send_msg->webhook_chat_command_responce();
 }
+$bot_send_msg = new Telegram_Bot();
+$bot_send_msg->webhook_chat_command_responce();
 
