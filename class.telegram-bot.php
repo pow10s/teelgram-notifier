@@ -367,7 +367,7 @@ class Telegram_Bot
                 $db = new Telegram_Db();
                 $helper = new Helper();
                 //Handling commands from the user
-                $bot->command('start', function ($message) use ($bot, $db) {
+                $bot->command('/start', function ($message) use ($bot, $db) {
                     $db->addContact($message->getChat()->getId());
                     $db->resetStatus($message->getChat()->getId());
                     $text = 'Hello, thank`s for subscribing. Commands list: /help';
